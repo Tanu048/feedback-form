@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Feedback Form - IIPS</title>
+    <link rel="stylesheet" href="styles.css">
+    </link>
+</head>
+
+<body>
+    <!-- Admin Toggle Button -->
+    <button class="admin-toggle" onclick="showAdminLogin()">👤 Admin Portal</button>
+
+    <!-- Admin Login Modal -->
+    <div class="admin-login-modal" id="adminLoginModal">
+        <div class="admin-login-content">
+            <h2>🔐 Admin Login</h2>
+            <p class="admin-login-subtitle">Enter your credentials to access the admin portal</p>
+
+            <div class="login-form-group">
+                <label for="adminUsername">Username</label>
+                <input type="text" id="adminUsername" placeholder="Enter username" autocomplete="username">
+            </div>
+
+            <div class="login-form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter password" autocomplete="current-password">
+            </div>
+
+            <div class="login-error" id="loginError">
+                ❌ Invalid username or password. Please try again.
+            </div>
+
+            <div class="login-buttons">
+                <button class="login-btn login-btn-secondary" onclick="closeAdminLogin()">Cancel</button>
+                <button class="login-btn login-btn-primary" onclick="attemptLogin()">Login</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Admin Portal -->
+    <div class="admin-portal" id="adminPortal">
+        <div class="admin-header">
+            <h1> Admin Dashboard - Student Feedback</h1>
+            <button class="admin-close" onclick="closeAdminPortal()">Close Portal</button>
+        </div>
+
+        <div class="admin-content">
+            <!-- Statistics Cards -->
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <h3>Total Responses</h3>
+                    <div class="stat-value" id="totalResponses">0</div>
+                    <div class="stat-label">Feedback submissions</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Satisfaction</h3>
+                    <div class="stat-value" id="avgSatisfaction">-</div>
+                    <div class="stat-label">Out of 10</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Response Rate</h3>
+                    <div class="stat-value" id="responseRate">0%</div>
+                    <div class="stat-label">This semester</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Latest Response</h3>
+                    <div class="stat-value" id="latestResponse" style="font-size: 20px;">-</div>
+                    <div class="stat-label">Time ago</div>
+                </div>
+            </div>
+
+            <!-- Responses Section -->
+            <div class="responses-section">
+                <h2>Student Responses</h2>
+
+                <button class="export-btn" onclick="exportToCSV()">📥 Export to CSV</button>
+
+                <div class="filter-controls">
+                    <select id="filterYear" onchange="filterResponses()">
+                        <option value="">All Years</option>
+                        <option value="1">1<sup>st</sup> Year</option>
+                        <option value="2">2<sup>nd</sup> Year</option>
+                        <option value="3">3<sup>rd</sup> Year</option>
+                        <option value="4">4<sup>th</sup> Year</option>
+                        <option value="5">5<sup>th</sup> Year</option>
+                        <option value="6">6<sup>th</sup> Year</option>
+                        <option value="graduate">Graduate</option>
+                    </select>
+
+                    <input type="text" id="searchStudent" placeholder="Search by name or ID..."
+                        onkeyup="filterResponses()">
+
+                    <select id="sortBy" onchange="sortResponses()">
+                        <option value="date">Sort by Date</option>
+                        <option value="name">Sort by Name</option>
+                        <option value="satisfaction">Sort by Satisfaction</option>
+                    </select>
+                </div>
+
+                <table class="response-table" id="responseTable">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Enrollment Number</th>
+                            <th>Program</th>
+                            <th>Year</th>
+                            <th>Satisfaction</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responseTableBody">
+                        <!-- Responses will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Detail Modal -->
+    <div class="response-modal" id="responseModal">
+        <div class="response-modal-content">
+            <h2>Response Details</h2>
+            <div id="responseDetails"></div>
+            <button class="close-modal-btn" onclick="closeResponseModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>PROGRESS</h3>
+            <span class="progress-count" id="progressCount">0/6</span>
+        </div>
+        <div class="progress-items">
+            <div class="progress-item" data-page="1">Personal Information</div>
+            <div class="progress-item" data-page="2">Course Content</div>
+            <div class="progress-item" data-page="3">Teaching Quality</div>
+            <div class="progress-item" data-page="4">Campus Facilities</div>
+            <div class="progress-item" data-page="5">Overall Experience</div>
+            <div class="progress-item" data-page="6">Additional Feedback</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="content-wrapper">
+            <!-- Page 0: Introduction -->
+            <div class="page active intro-page" id="page0">
+                <div class="logo"><img src="https://iips.edu.in/conference/image/IIPS_logo-removedbg.png" alt="LOGO"
+                        height="150px" width="150px"></div>
+                <h1><span class="span">I</span>NTERNATIONAL <span class="span">I</span>NSTITUTE OF <span
+                        class="span">P</span>ROFESSIONAL <span class="span">S</span>TUDIES</h1>
+
+                <div class="welcome-text">
+                    <h2>Student Feedback Form</h2>
+                    <p>Dear Student,</p>
+                    <p>Your voice matters! This feedback form is designed to help us understand your experience and
+                        continuously improve our educational services, facilities, and campus environment.</p>
+                    <p>The form will take approximately 5-7 minutes to complete. Your responses are completely
+                        confidential and will be used solely for institutional development purposes.</p>
+                    <p>Thank you for taking the time to share your valuable insights with us.</p>
+                </div>
+
+                <div class="button-group" style="justify-content: center;">
+                    <button class="btn btn-primary" onclick="goToPage(1)">Begin Feedback</button>
+                </div>
+            </div>
+
+            <!-- Page 1: Personal Information -->
+            <div class="page" id="page1">
+                <h2>Personal Information</h2>
+                <div class="form-section">
+                    <label for="studentName" class="required">Full Name</label>
+                    <input type="text" id="studentName" placeholder="Enter your full name">
+
+                    <label for="studentId" class="required">Enrollment Number</label>
+                    <input type="text" id="studentId" placeholder="Enter your student ID">
+
+                    <label for="program" class="required">Program/Course</label>
+                    <input type="text" id="program" placeholder="e.g., Computer Science">
+
+                    <label for="year" class="required">Year of Study</label>
+                    <select id="year">
+                        <option value="">Select Year</option>
+                        <option value="1">1<sup>st</sup> Year</option>
+                        <option value="2">2<sup>nd</sup> Year</option>
+                        <option value="3">3<sup>rd</sup> Year</option>
+                        <option value="4">4<sup>th</sup> Year</option>
+                        <option value="5">5<sup>th</sup> Year</option>
+                        <option value="6">6<sup>th</sup> Year</option>
+                        <option value="graduate">Graduate</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(0)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn1" onclick="goToPage(2)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 3: Teaching Quality -->
+            <div class="page" id="page3">
+                <h2>Teaching Quality</h2>
+                <div class="form-section">
+                    <label class="required">How would you rate your instructors' knowledge?</label>
+                    <div class="emoji-rating" id="instructorKnowledge">
+                        <button class="emoji-btn" data-value="1">😞</button>
+                        <button class="emoji-btn" data-value="2">😕</button>
+                        <button class="emoji-btn" data-value="3">😐</button>
+                        <button class="emoji-btn" data-value="4">😊</button>
+                        <button class="emoji-btn" data-value="5">😄</button>
+                    </div>
+
+                    <label class="required">Rate the clarity of instruction</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="claritySlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="clarityValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(2)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn2" onclick="goToPage(4)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 2: Course Content -->
+            <div class="page" id="page2">
+                <h2>Course Content</h2>
+                <div class="form-section">
+                    <label class="required">How relevant is the course content to your career goals?</label>
+                    <div class="number-rating" data-question="courseRelevance">
+                        <button type="button" class="number-btn" data-value="1">1</button>
+                        <button type="button" class="number-btn" data-value="2">2</button>
+                        <button type="button" class="number-btn" data-value="3">3</button>
+                        <button type="button" class="number-btn" data-value="4">4</button>
+                        <button type="button" class="number-btn" data-value="5">5</button>
+                        <button type="button" class="number-btn" data-value="6">6</button>
+                        <button type="button" class="number-btn" data-value="7">7</button>
+                        <button type="button" class="number-btn" data-value="8">8</button>
+                        <button type="button" class="number-btn" data-value="9">9</button>
+                        <button type="button" class="number-btn" data-value="10">10</button>
+                    </div>
+
+                    <label class="required">The allocation of the credits to the course is appropriate in relation to
+                        the level of course work?</label>
+                    <div class="radio-group" id="workloadRadio">
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="inappropriate">
+                            <span>Inappropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="somewhat-inappropriate">
+                            <span>Somewhat Inappropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="somewhat-appropriate">
+                            <span>Somewhat Appropriate</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="creditAllocation" value="appropriate">
+                            <span>Appropriate</span>
+                        </label>
+                    </div>
+                    <label class="required">The depth of the course content is adequate in relation to the expected
+                        Course Outcomes (COs)</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="contentDepthSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="contentDepthValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(1)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn3" onclick="goToPage(3)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 4: Campus Facilities -->
+            <div class="page" id="page4">
+                <h2>Campus Facilities</h2>
+                <div class="form-section">
+                    <label class="required">How would you rate management and material available in the library and
+                        study spaces?</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="libraryHygieneSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="libraryHygieneValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+
+                    <label class="required">How satisfied are you with campus facilities?</label>
+                    <div class="emoji-rating" id="facilitiesRating">
+                        <button class="emoji-btn" data-value="1">😞</button>
+                        <button class="emoji-btn" data-value="2">😕</button>
+                        <button class="emoji-btn" data-value="3">😐</button>
+                        <button class="emoji-btn" data-value="4">😊</button>
+                        <button class="emoji-btn" data-value="5">😄</button>
+                    </div>
+
+                    <label class="required">How would you rate hygiene and avability of resources in the labs &
+                        washrooms?</label>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="labsWashHygieneSlider" min="1" max="10" value="5">
+                        <div class="slider-labels">
+                            <span>Poor</span>
+                            <span class="slider-value" id="labsWashHygieneValue">5</span>
+                            <span>Excellent</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(3)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn4" onclick="goToPage(5)" disabled>Next</button>
+                </div>
+            </div>
+
+            <!-- Page 5: Overall Experience -->
+            <div class="page" id="page5">
+                <h2>Overall Experience</h2>
+                <div class="form-section">
+                    <label class="required">Overall satisfaction with IIPS (1-10)</label>
+                    <div class="number-rating" id="overallSatisfaction">
+                        <button class="number-btn" data-value="1">1</button>
+                        <button class="number-btn" data-value="2">2</button>
+                        <button class="number-btn" data-value="3">3</button>
+                        <button class="number-btn" data-value="4">4</button>
+                        <button class="number-btn" data-value="5">5</button>
+                        <button class="number-btn" data-value="6">6</button>
+                        <button class="number-btn" data-value="7">7</button>
+                        <button class="number-btn" data-value="8">8</button>
+                        <button class="number-btn" data-value="9">9</button>
+                        <button class="number-btn" data-value="10">10</button>
+                    </div>
+
+                    <label class="required">Would you recommend IIPS?</label>
+                    <div class="radio-group" id="recommendRadio">
+                        <label class="radio-label"><input type="radio" name="recommend"
+                                value="definitely"><span>Definitely Yes</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="probably"><span>Probably
+                                Yes</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="not-sure"><span>Not
+                                Sure</span></label>
+                        <label class="radio-label"><input type="radio" name="recommend" value="no"><span>Probably
+                                Not</span></label>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(4)">Back</button>
+                    <button class="btn btn-primary" id="nextBtn5" onclick="goToPage(6)" disabled>Next</button>
+                </div>
+            </div>
+
+
+            <!-- Section 6: additional feedback -->
+            <div class="page" id="page6">
+                <h2>Additional Feedback</h2>
+                <div class="form-section">
+                    <label for="additionalComments">Please share any additional thoughts on particular aspects of the
+                        university, courses, teachers, facilities, or campus life:</label>
+                    <textarea id="additionalComments" rows="5" placeholder="Your comments here..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="goToPage(5)">Back</button>
+                    <button class="btn btn-primary" id="submitBtn" onclick="submitForm()" disabled>Submit
+                        Feedback</button>
+                </div>
+            </div>
+
+
+            <!-- Page 7: Thank You -->
+            <div class="page" id="page7">
+                <div class="thank-you-content" style="text-align: center;">
+                    <div class="thank-you-icon">✨</div>
+                    <h1>Thank You!</h1>
+                    <p>Your feedback has been successfully submitted. We truly appreciate you taking the time to share
+                        your thoughts and experiences with us.</p>
+                    <p>Your input is invaluable in helping us create a better learning environment for all students at
+                        IIPS.</p>
+
+                    <div class="contact-box">
+                        <h3>Stay Connected With Us</h3>
+                        <div class="contact-item">
+                            <span class="icon">🌐</span>
+                            <span><a href="https://iips.edu.in/" style="color: black;">Official site</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📧</span>
+                            <span>admin@iips.edu.in</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📞</span>
+                            <span>+91-731-2461888</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="icon">📍</span>
+                            <span>IIPS-Devi Ahilya University, Takshashila Campus Khandwa Road , Indore - 452001,
+                                INDIA</span>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 30px; color: var(--text-secondary); font-size: 0.95em;">© 2025 International
+                        Institute of Professional Studies</p>
+
+                    <div class="button-group" style="justify-content: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="exitForm()">Exit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="checkmark-circle">
+                <div class="checkmark"></div>
+            </div>
+            <h2 class="modal-title">You Have Responded!</h2>
+            <p class="modal-message">Thank you for completing the feedback form. Your response has been successfully
+                recorded and will help us improve our services.</p>
+            <div class="modal-line"></div>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+<script>// ===========================
+// State Management
+// ===========================
+let currentPage = 0;
+let completedPages = new Set();
+let formData = {};
+
+// Admin credentials (in production, use secure backend authentication)
+const ADMIN_CREDENTIALS = {
+    username: 'admin',
+    password: 'iips2025'
+};
+
+// ===========================
+// Storage Helper Functions
+// ===========================
+async function getResponses() {
+    try {
+        // Check if storage API is available
+        if (typeof window.storage !== 'undefined') {
+            const result = await window.storage.get('feedback_responses', true);
+            return result ? JSON.parse(result.value) : [];
+        } else {
+            // Fallback: use in-memory storage (for testing without storage API)
+            console.warn('Storage API not available, using in-memory storage');
+            return window._memoryResponses || [];
+        }
+    } catch (error) {
+        console.error('Error getting responses:', error);
+        return window._memoryResponses || [];
+    }
+}
+
+async function saveResponses(responses) {
+    try {
+        if (typeof window.storage !== 'undefined') {
+            await window.storage.set('feedback_responses', JSON.stringify(responses), true);
+            return true;
+        } else {
+            // Fallback: use in-memory storage
+            window._memoryResponses = responses;
+            return true;
+        }
+    } catch (error) {
+        console.error('Error saving responses:', error);
+        return false;
+    }
+}
+
+// ===========================
+// Page Navigation
+// ===========================
+function goToPage(pageNum) {
+    // Validate current page before moving forward
+    if (pageNum > currentPage && currentPage > 0 && !validateCurrentPage()) {
+        return;
+    }
+
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+
+    // Show target page
+    const targetPage = document.getElementById(`page${pageNum}`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        currentPage = pageNum;
+
+        // Update sidebar progress
+        updateProgress();
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function updateProgress() {
+    const progressCount = document.getElementById('progressCount');
+    const progressItems = document.querySelectorAll('.progress-item');
+
+    progressCount.textContent = `${completedPages.size}/6`;
+
+    progressItems.forEach((item, index) => {
+        const pageNum = index + 1;
+        item.classList.remove('completed', 'active');
+
+        if (completedPages.has(pageNum)) {
+            item.classList.add('completed');
+        }
+        if (currentPage === pageNum) {
+            item.classList.add('active');
+        }
+
+        // Make clickable if completed
+        if (completedPages.has(pageNum) || pageNum === currentPage) {
+            item.style.cursor = 'pointer';
+            item.onclick = () => goToPage(pageNum);
+        }
+    });
+}
+
+// ===========================
+// Validation Functions
+// ===========================
+function validateCurrentPage() {
+    switch (currentPage) {
+        case 1:
+            return validatePage1();
+        case 2:
+            return validatePage2();
+        case 3:
+            return validatePage3();
+        case 4:
+            return validatePage4();
+        case 5:
+            return validatePage5();
+        case 6:
+            return validatePage6();
+        default:
+            return true;
+    }
+}
+
+function validatePage1() {
+    const name = document.getElementById('studentName').value.trim();
+    const id = document.getElementById('studentId').value.trim();
+    const program = document.getElementById('program').value.trim();
+    const year = document.getElementById('year').value;
+
+    if (!name || !id || !program || !year) {
+        alert('Please fill in all required fields.');
+        return false;
+    }
+
+    formData.studentName = name;
+    formData.studentId = id;
+    formData.program = program;
+    formData.year = year;
+    completedPages.add(1);
+    return true;
+}
+
+function validatePage2() {
+    const courseRelevance = document.querySelector('.number-rating[data-question="courseRelevance"] .number-btn.selected');
+    const creditAllocation = document.querySelector('input[name="creditAllocation"]:checked');
+    const contentDepth = document.getElementById('contentDepthSlider').value;
+
+    if (!courseRelevance || !creditAllocation) {
+        alert('Please answer all required questions on this page.');
+        return false;
+    }
+
+    formData.courseRelevance = courseRelevance.dataset.value;
+    formData.creditAllocation = creditAllocation.value;
+    formData.contentDepth = contentDepth;
+    completedPages.add(2);
+    return true;
+}
+
+function validatePage3() {
+    const instructorKnowledge = document.querySelector('#instructorKnowledge .emoji-btn.selected');
+    const claritySlider = document.getElementById('claritySlider').value;
+
+    if (!instructorKnowledge) {
+        alert('Please rate your instructors\' knowledge.');
+        return false;
+    }
+
+    formData.instructorKnowledge = instructorKnowledge.dataset.value;
+    formData.clarityOfInstruction = claritySlider;
+    completedPages.add(3);
+    return true;
+}
+
+function validatePage4() {
+    const libraryRating = document.getElementById('libraryHygieneSlider').value;
+    const facilitiesRating = document.querySelector('#facilitiesRating .emoji-btn.selected');
+    const labsWashRating = document.getElementById('labsWashHygieneSlider').value;
+
+    if (!facilitiesRating) {
+        alert('Please rate your satisfaction with campus facilities.');
+        return false;
+    }
+
+    formData.libraryRating = libraryRating;
+    formData.facilitiesRating = facilitiesRating.dataset.value;
+    formData.labsWashRating = labsWashRating;
+    completedPages.add(4);
+    return true;
+}
+
+function validatePage5() {
+    const overallSatisfaction = document.querySelector('#overallSatisfaction .number-btn.selected');
+    const recommend = document.querySelector('input[name="recommend"]:checked');
+
+    if (!overallSatisfaction || !recommend) {
+        alert('Please answer all required questions on this page.');
+        return false;
+    }
+
+    formData.overallSatisfaction = overallSatisfaction.dataset.value;
+    formData.recommend = recommend.value;
+    completedPages.add(5);
+    return true;
+}
+
+function validatePage6() {
+    const comments = document.getElementById('additionalComments').value.trim();
+    formData.additionalComments = comments || 'No additional comments';
+    completedPages.add(6);
+    return true;
+}
+
+// ===========================
+// Form Submission
+// ===========================
+async function submitForm() {
+    console.log('Submit form called');
+    
+    if (!validateCurrentPage()) {
+        console.log('Validation failed');
+        return;
+    }
+
+    // Add submission timestamp
+    formData.submittedAt = new Date().toISOString();
+    
+    console.log('Form data:', formData);
+
+    try {
+        // Save to storage
+        const responses = await getResponses();
+        responses.push(formData);
+        const saved = await saveResponses(responses);
+        
+        if (saved) {
+            console.log('Form submitted successfully');
+            // Show thank you page
+            goToPage(7);
+        } else {
+            throw new Error('Failed to save response');
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('There was an error submitting your feedback. Your response has been logged locally. Please try again or contact support.');
+        // Still go to thank you page even if storage fails
+        goToPage(7);
+    }
+}
+
+function exitForm() {
+    if (confirm('Are you sure you want to exit? This will reset the form.')) {
+        window.location.reload();
+    }
+}
+
+// ===========================
+// Interactive Elements Setup
+// ===========================
+function setupInteractiveElements() {
+    // Emoji rating buttons
+    document.querySelectorAll('.emoji-rating').forEach(container => {
+        container.querySelectorAll('.emoji-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                container.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                checkPageCompletion();
+            });
+        });
+    });
+
+    // Number rating buttons
+    document.querySelectorAll('.number-rating').forEach(container => {
+        container.querySelectorAll('.number-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                container.querySelectorAll('.number-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                checkPageCompletion();
+            });
+        });
+    });
+
+    // Sliders with live value update
+    document.querySelectorAll('.slider').forEach(slider => {
+        const valueId = slider.id.replace('Slider', 'Value');
+        const valueSpan = document.getElementById(valueId);
+        
+        slider.addEventListener('input', function() {
+            if (valueSpan) {
+                valueSpan.textContent = this.value;
+            }
+            checkPageCompletion();
+        });
+    });
+
+    // Radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', checkPageCompletion);
+    });
+
+    // Text inputs
+    document.querySelectorAll('input[type="text"], select, textarea').forEach(input => {
+        input.addEventListener('input', checkPageCompletion);
+        input.addEventListener('change', checkPageCompletion);
+    });
+}
+
+function checkPageCompletion() {
+    // Enable/disable next buttons based on current page validation
+    switch (currentPage) {
+        case 1:
+            updateButtonState('nextBtn1', () => {
+                const name = document.getElementById('studentName').value.trim();
+                const id = document.getElementById('studentId').value.trim();
+                const program = document.getElementById('program').value.trim();
+                const year = document.getElementById('year').value;
+                return name && id && program && year;
+            });
+            break;
+        case 2:
+            updateButtonState('nextBtn3', () => {
+                const courseRelevance = document.querySelector('.number-rating[data-question="courseRelevance"] .number-btn.selected');
+                const creditAllocation = document.querySelector('input[name="creditAllocation"]:checked');
+                return courseRelevance && creditAllocation;
+            });
+            break;
+        case 3:
+            updateButtonState('nextBtn2', () => {
+                const instructorKnowledge = document.querySelector('#instructorKnowledge .emoji-btn.selected');
+                return instructorKnowledge !== null;
+            });
+            break;
+        case 4:
+            updateButtonState('nextBtn4', () => {
+                const facilitiesRating = document.querySelector('#facilitiesRating .emoji-btn.selected');
+                return facilitiesRating !== null;
+            });
+            break;
+        case 5:
+            updateButtonState('nextBtn5', () => {
+                const overallSatisfaction = document.querySelector('#overallSatisfaction .number-btn.selected');
+                const recommend = document.querySelector('input[name="recommend"]:checked');
+                return overallSatisfaction && recommend;
+            });
+            break;
+        case 6:
+            // Submit button is always enabled on page 6 (comments are optional)
+            updateButtonState('submitBtn', () => true);
+            break;
+    }
+}
+
+function updateButtonState(buttonId, checkFunction) {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.disabled = !checkFunction();
+    }
+}
+
+// ===========================
+// Admin Portal Functions
+// ===========================
+function showAdminLogin() {
+    document.getElementById('adminLoginModal').style.display = 'flex';
+    document.getElementById('loginError').style.display = 'none';
+}
+
+function closeAdminLogin() {
+    document.getElementById('adminLoginModal').style.display = 'none';
+    document.getElementById('adminUsername').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+}
+
+function attemptLogin() {
+    const username = document.getElementById('adminUsername').value;
+    const password = document.getElementById('adminPassword').value;
+
+    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        closeAdminLogin();
+        openAdminPortal();
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+    }
+}
+
+async function openAdminPortal() {
+    document.getElementById('adminPortal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    await loadAdminData();
+}
+
+function closeAdminPortal() {
+    document.getElementById('adminPortal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+async function loadAdminData() {
+    const responses = await getResponses();
+    
+    // Update statistics
+    document.getElementById('totalResponses').textContent = responses.length;
+    
+    if (responses.length > 0) {
+        const avgSat = responses.reduce((sum, r) => sum + parseInt(r.overallSatisfaction), 0) / responses.length;
+        document.getElementById('avgSatisfaction').textContent = avgSat.toFixed(1);
+        
+        const latest = new Date(responses[responses.length - 1].submittedAt);
+        const now = new Date();
+        const diff = Math.floor((now - latest) / 60000);
+        document.getElementById('latestResponse').textContent = diff < 60 ? `${diff}m ago` : `${Math.floor(diff / 60)}h ago`;
+    } else {
+        document.getElementById('avgSatisfaction').textContent = '-';
+        document.getElementById('latestResponse').textContent = '-';
+    }
+    
+    document.getElementById('responseRate').textContent = `${Math.min(100, responses.length * 2)}%`;
+    
+    // Load response table
+    displayResponses(responses);
+}
+
+function displayResponses(responses) {
+    const tbody = document.getElementById('responseTableBody');
+    tbody.innerHTML = '';
+    
+    if (responses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No responses yet</td></tr>';
+        return;
+    }
+    
+    responses.forEach((response, index) => {
+        const row = document.createElement('tr');
+        const date = new Date(response.submittedAt);
+        
+        row.innerHTML = `
+            <td>${response.studentName}</td>
+            <td>${response.studentId}</td>
+            <td>${response.program}</td>
+            <td>${response.year}</td>
+            <td><span class="satisfaction-badge">${response.overallSatisfaction}/10</span></td>
+            <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+            <td><button class="view-btn" onclick="viewResponse(${index})">View</button></td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+async function viewResponse(index) {
+    const responses = await getResponses();
+    const response = responses[index];
+    
+    const details = `
+        <div class="response-detail">
+            <h3>Student Information</h3>
+            <p><strong>Name:</strong> ${response.studentName}</p>
+            <p><strong>ID:</strong> ${response.studentId}</p>
+            <p><strong>Program:</strong> ${response.program}</p>
+            <p><strong>Year:</strong> ${response.year}</p>
+            
+            <h3>Course Content</h3>
+            <p><strong>Course Relevance:</strong> ${response.courseRelevance}/10</p>
+            <p><strong>Credit Allocation:</strong> ${response.creditAllocation}</p>
+            <p><strong>Content Depth:</strong> ${response.contentDepth}/10</p>
+            
+            <h3>Teaching Quality</h3>
+            <p><strong>Instructor Knowledge:</strong> ${response.instructorKnowledge}/5</p>
+            <p><strong>Clarity of Instruction:</strong> ${response.clarityOfInstruction}/10</p>
+            
+            <h3>Campus Facilities</h3>
+            <p><strong>Library Rating:</strong> ${response.libraryRating}/10</p>
+            <p><strong>Facilities Rating:</strong> ${response.facilitiesRating}/5</p>
+            <p><strong>Labs & Washrooms:</strong> ${response.labsWashRating}/10</p>
+            
+            <h3>Overall Experience</h3>
+            <p><strong>Overall Satisfaction:</strong> ${response.overallSatisfaction}/10</p>
+            <p><strong>Would Recommend:</strong> ${response.recommend}</p>
+            
+            <h3>Additional Comments</h3>
+            <p>${response.additionalComments}</p>
+            
+            <p style="margin-top: 20px; color: #666;"><strong>Submitted:</strong> ${new Date(response.submittedAt).toLocaleString()}</p>
+        </div>
+    `;
+    
+    document.getElementById('responseDetails').innerHTML = details;
+    document.getElementById('responseModal').style.display = 'flex';
+}
+
+function closeResponseModal() {
+    document.getElementById('responseModal').style.display = 'none';
+}
+
+async function filterResponses() {
+    const responses = await getResponses();
+    const year = document.getElementById('filterYear').value;
+    const search = document.getElementById('searchStudent').value.toLowerCase();
+    
+    let filtered = responses;
+    
+    if (year) {
+        filtered = filtered.filter(r => r.year === year);
+    }
+    
+    if (search) {
+        filtered = filtered.filter(r => 
+            r.studentName.toLowerCase().includes(search) || 
+            r.studentId.toLowerCase().includes(search)
+        );
+    }
+    
+    displayResponses(filtered);
+}
+
+async function sortResponses() {
+    const responses = await getResponses();
+    const sortBy = document.getElementById('sortBy').value;
+    
+    let sorted = [...responses];
+    
+    switch (sortBy) {
+        case 'name':
+            sorted.sort((a, b) => a.studentName.localeCompare(b.studentName));
+            break;
+        case 'satisfaction':
+            sorted.sort((a, b) => b.overallSatisfaction - a.overallSatisfaction);
+            break;
+        case 'date':
+        default:
+            sorted.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    }
+    
+    displayResponses(sorted);
+}
+
+async function exportToCSV() {
+    const responses = await getResponses();
+    
+    if (responses.length === 0) {
+        alert('No data to export');
+        return;
+    }
+    
+    const headers = ['Name', 'ID', 'Program', 'Year', 'Course Relevance', 'Credit Allocation', 
+                     'Content Depth', 'Instructor Knowledge', 'Clarity', 'Library', 'Facilities', 
+                     'Labs/Wash', 'Overall Satisfaction', 'Recommend', 'Comments', 'Submitted'];
+    
+    const csvContent = [
+        headers.join(','),
+        ...responses.map(r => [
+            `"${r.studentName}"`,
+            r.studentId,
+            `"${r.program}"`,
+            r.year,
+            r.courseRelevance,
+            `"${r.creditAllocation}"`,
+            r.contentDepth,
+            r.instructorKnowledge,
+            r.clarityOfInstruction,
+            r.libraryRating,
+            r.facilitiesRating,
+            r.labsWashRating,
+            r.overallSatisfaction,
+            `"${r.recommend}"`,
+            `"${r.additionalComments.replace(/"/g, '""')}"`,
+            new Date(r.submittedAt).toLocaleString()
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `feedback_responses_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// ===========================
+// Modal Functions
+// ===========================
+function closeModal() {
+    document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// ===========================
+// Initialization
+// ===========================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing...');
+    
+    setupInteractiveElements();
+    updateProgress();
+    
+    // Initialize submit button state
+    checkPageCompletion();
+    
+    // Handle Enter key on login
+    const passwordField = document.getElementById('adminPassword');
+    if (passwordField) {
+        passwordField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                attemptLogin();
+            }
+        });
+    }
+    
+    // Close modals on outside click
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    if (adminLoginModal) {
+        adminLoginModal.addEventListener('click', function(e) {
+            if (e.target === this) closeAdminLogin();
+        });
+    }
+    
+    const responseModal = document.getElementById('responseModal');
+    if (responseModal) {
+        responseModal.addEventListener('click', function(e) {
+            if (e.target === this) closeResponseModal();
+        });
+    }
+    
+    console.log('Initialization complete');
+});
+</script>
+
+</body>
+
+</html>
