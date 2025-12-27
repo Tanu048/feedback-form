@@ -24,13 +24,13 @@ The form includes progress tracking, validation, and a modern UI with light them
 ---
 
 ## 📂 Project Structure
-
+```
 student-feedback-form/
 │
 ├── index.html # Main form structure
 ├── styles.css # Styling for pages, modals, and theme
 └── script.js # Form logic and navigation
-
+```
 ---
 
 ## 🖇️Find The Site Here 
